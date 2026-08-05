@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+venv/
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.DS_Store
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Final artifacts
+*.zip
+*.pdf
+*.docx

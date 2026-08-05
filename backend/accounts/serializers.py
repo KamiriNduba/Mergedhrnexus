@@ -1,0 +1,79 @@
+from rest_framework import serializers
+from .models import CustomUser, Role
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ["id", "name", "description"]
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "phone_number",
+        ]
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+
+        user.is_approved = True
+        user.is_active = True
+        
+        # Assign EMPLOYEE role by default
+        from .models import Role
+        try:
+            employee_role = Role.objects.get(name='EMPLOYEE')
+            user.role = employee_role
+        except Role.DoesNotExist:
+            pass  # Role will be assigned later
+
+        user.save()
+
+        return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.name", read_only=True, default=None, allow_null=True)
+    role_id = serializers.IntegerField(source="role.id", read_only=True, default=None, allow_null=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "username",
+            "email",
+            "phone_number",
+            "role",
+            "role_id",
+            "is_approved",
+            "is_active",
+            "is_superuser",
+            "is_staff",
+            "created_at",
+        ]
+
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "email",
+            "phone_number",
+            "profile_picture",
+        ]
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField(min_length=8)
